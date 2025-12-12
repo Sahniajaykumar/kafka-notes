@@ -81,7 +81,7 @@ Step-8 : View created Topics using below command
 
 Kafka Bootstrap Server URL : http://localhost:9092/ or http://192.30.43.2:9092/ for linux server created in cloud
 
-
+=========================================================================================================================================
 
 Q: Why should we use kafka ?
 
@@ -159,3 +159,167 @@ Inventory Service reads
 Analytics Service reads
 
 Kafka supports fan-out messaging.
+
+===================================================================================================================================
+🏛️ Kafka Architecture (Complete Overview)
+
+Kafka is a distributed event streaming platform made up of the following core components:
+
+🔷 1. Producers
+
+Applications that publish messages (events) into Kafka topics.
+
+Example:
+
+Auth Service → sends "Send Email" event
+
+Order Service → sends "Order Created" event
+
+🔷 2. Consumers
+
+Applications that read/consume messages from topics.
+
+Example:
+
+Notification Service → reads "Send Email"
+
+Inventory Service → reads "Order Created"
+
+Consumers can be grouped into Consumer Groups for load balancing.
+
+🔷 3. Topics
+
+A category or stream to which messages are published.
+
+Example:
+
+send_email
+
+order_events
+
+payment_events
+
+🔷 4. Partitions
+
+Each topic is divided into multiple partitions.
+
+Example:
+
+order_events:
+    Partition-0
+    Partition-1
+    Partition-2
+
+
+Benefits:
+
+Parallel processing
+
+Scalability
+
+High throughput
+
+🔷 5. Brokers (Kafka Servers)
+
+A Kafka broker is a server that stores data and handles requests.
+
+A Kafka cluster = multiple brokers.
+
+Example:
+
+Broker 1
+Broker 2
+Broker 3
+
+
+Messages are distributed across brokers.
+
+🔷 6. Zookeeper / KRaft
+
+Kafka needs:
+
+Zookeeper (older versions)
+
+KRaft mode (new versions, no Zookeeper)
+
+Used for:
+
+Cluster coordination
+
+Leader election
+
+Metadata management
+
+🔷 7. Leader & Replicas
+
+Each partition has:
+
+Leader → handles read/write
+
+Replicas → backup for fault-tolerance
+
+If leader fails → replica becomes new leader.
+
+🔷 8. Offsets
+
+Each message has a unique ID inside a partition.
+
+Example:
+
+Offset 0 → Order created  
+Offset 1 → Payment initiated  
+Offset 2 → Email sent
+
+
+Consumers track offsets.
+
+📘 Kafka Architecture Diagram (Text Version)
+                ┌─────────────────────────────┐
+                │         PRODUCERS           │
+                │ (Auth Service, Order App)   │
+                └──────────────┬──────────────┘
+                               │
+                               ▼
+                   ┌───────────────────────┐
+                   │        TOPIC          │
+                   │     send_email        │
+                   └─────────┬─────────────┘
+         ┌────────────────────┼────────────────────┐
+         ▼                    ▼                    ▼
+  Partition-0          Partition-1          Partition-2
+   Leader B1            Leader B2            Leader B3
+   Replica B2           Replica B3           Replica B1
+   Replica B3           Replica B1           Replica B2
+
+         ┌────────────────────┴────────────────────┐
+         ▼                    ▼                    ▼
+   ┌────────────┐     ┌────────────┐      ┌────────────┐
+   │  BROKER 1   │     │  BROKER 2   │      │  BROKER 3   │
+   └────────────┘     └────────────┘      └────────────┘
+         │                    │                     │
+         └──────────────┬────┴──────────────┬──────┘
+                        ▼                   ▼
+                 ┌───────────────┐   ┌───────────────┐
+                 │  CONSUMERS    │   │ Consumer Group │
+                 │ Email Service │   │   Notification │
+                 └───────────────┘   └───────────────┘
+
+🔥 How Kafka Works (Flow)
+
+Producer sends message → Topic
+
+Topic stores message → Partition
+
+Partition replicates message across brokers
+
+Consumer reads message from partition
+
+Consumer commits the offset
+
+Kafka ensures:
+
+No data loss
+
+High performance
+
+Scalability
