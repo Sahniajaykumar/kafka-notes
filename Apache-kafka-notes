@@ -80,3 +80,82 @@ Step-8 : View created Topics using below command
 
 
 Kafka Bootstrap Server URL : http://localhost:9092/ or http://192.30.43.2:9092/ for linux server created in cloud
+
+
+
+Q: Why should we use kafka ?
+
+✅ 1. Decoupling Microservices (Loose Coupling)
+
+Without Kafka:
+
+Service A sends data directly to Service B
+
+If B is down → A fails
+
+System becomes fragile
+
+With Kafka:
+
+A sends message to Kafka
+
+B reads it whenever it’s available
+
+Even if B is down, messages are safe
+
+👉 Microservices no longer depend on each other.
+
+✅ 2. High Performance (Real-Time Messaging)
+
+Kafka handles millions of messages per second.
+
+Perfect for:
+
+Logs
+
+Notifications
+
+Payment events
+
+Order processing
+
+Tracking user activity
+
+✅ 3. Fault Tolerance (No Data Loss)
+
+Kafka stores messages on disk and replicates them.
+Even if a server crashes → data is not lost.
+
+✅ 4. Scalability
+
+Need more capacity?
+
+Just add more Kafka brokers (servers).
+Kafka scales horizontally and automatically.
+
+✅ 5. Asynchronous Communication
+
+Services don’t have to wait for each other.
+
+Example:
+User registers → Auth service publishes message →
+Email service reads it later → SMS service reads it later.
+
+Faster response time for the user.
+
+✅ 6. Multiple Consumers for Same Data
+
+One message → Many services can read it.
+
+Example:
+Order Created Event
+
+Billing Service reads
+
+Notification Service reads
+
+Inventory Service reads
+
+Analytics Service reads
+
+Kafka supports fan-out messaging.
