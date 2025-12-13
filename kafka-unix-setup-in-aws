@@ -1,4 +1,7 @@
-✅ 1. Install Java (OpenJDK 17)
+configuring kafka server online in aws on EC2 virtual server
+======================================================================
+
+✅ 1. Install Java (OpenJDK 17) // PSA notes
 
 sudo apt update
 sudo apt install openjdk-17-jdk -y
@@ -51,8 +54,6 @@ Make sure your EC2 instance's security group:
 Allows inbound traffic on port 9092 from your client IP or anywhere (0.0.0.0/0 for testing)
 
 Allows inbound traffic on port 2181 if Zookeeper is accessed externally (optional)
-
-
 
 
 ==================================================================================================================================================================================
@@ -123,19 +124,35 @@ Click Launch Instance
 
 Wait until Instance State → Running
 
-🔐 STEP 10: Connect to EC2 From your local terminal:
+Now connect you local system with EC2 instance  : How ?
+==============================================================
 
+Step 1: Connect to your EC2 instance
+
+Make sure you have the .pem key file you downloaded during instance creation (e.g., kafka-key.pem).
+
+Open your terminal (Linux/macOS) or PowerShell/WSL on Windows.
+
+Run these commands:
+# Make the key file read-only
 chmod 400 kafka-key.pem
+
+# Connect to your EC2 instance (replace <EC2_PUBLIC_IP> with your instance's public IP)
 ssh -i kafka-key.pem ubuntu@<EC2_PUBLIC_IP>
 
-Step 11: Install Java 17
+Once connected, you should see the Ubuntu shell prompt on your EC2 instance.
+
+Step 2: Update system and install Java 17
+
+Kafka requires Java. Run:
 sudo apt update
 sudo apt install openjdk-17-jdk -y
 java -version
 
-Should show openjdk version "17...".
+You should see openjdk version "17...". This confirms Java 17 is installed.
 
-Step 12: Download and Extract Kafka
+Step 3: Download and install Kafka
+
 cd /opt
 sudo wget https://dlcdn.apache.org/kafka/3.9.1/kafka_2.12-3.9.1.tgz
 sudo tar -xvzf kafka_2.12-3.9.1.tgz
@@ -143,86 +160,69 @@ sudo mv kafka_2.12-3.9.1 kafka
 sudo chown -R ubuntu:ubuntu /opt/kafka
 cd kafka
 
-Step 13: Configure Kafka
+Step 4: Configure Kafka
 
-Edit Kafka broker config:
+1. Open Kafka broker config:
+       nano config/server.properties
 
-nano config/server.properties
-
-Update the following:
-
+2. Update these lines:
 broker.id=0
 listeners=PLAINTEXT://0.0.0.0:9092
 advertised.listeners=PLAINTEXT://<EC2_PUBLIC_IP>:9092
 log.dirs=/tmp/kafka-logs
 
-Save & exit (CTRL + O → ENTER → CTRL + X)
+3. Save and exit (CTRL + O → ENTER → CTRL + X)
 
-Step 14: Start Zookeeper
 
-Open Terminal 1 on EC2:
+Step 5: Start Zookeeper
+
+Kafka uses Zookeeper. In Terminal 1:
 
 cd /opt/kafka
 bin/zookeeper-server-start.sh config/zookeeper.properties
 
-
 Keep this terminal open.
 
-Step 15: Start Kafka Broker
+Step 6: Start Kafka broker
 
 Open Terminal 2 (new SSH session):
 
 cd /opt/kafka
 bin/kafka-server-start.sh config/server.properties
 
-Step 16: Create Kafka Topic
 
-bin/kafka-topics.sh --create \
---topic send_email \
---bootstrap-server localhost:9092 \
---partitions 1 \
---replication-factor 1
+Step 7: Create a Kafka topic
 
+bin/kafka-topics.sh --create --topic send_email --bootstrap-server localhost:9092 --partitions 1 --replication-factor 1
 
-Verify topic:
+Verify the topic exists: bin/kafka-topics.sh --list --bootstrap-server localhost:9092
 
-bin/kafka-topics.sh --list --bootstrap-server localhost:9092
+Step 8: Update Spring Boot microservice
 
-Step 17: Test Kafka
-Producer:
-bin/kafka-console-producer.sh --topic send_email --bootstrap-server localhost:9092
-
-
-Type a test message:
-
-{"to":"test@gmail.com","subject":"Test","body":"Hello Kafka!"}
-
-Consumer:
-bin/kafka-console-consumer.sh --topic send_email --from-beginning --bootstrap-server localhost:9092
-
-
-You should see the message appear.
-
-Step 18: Configure Spring Boot Application
-
-In application.properties of your microservice:
+In your application.properties (producer microservice):
 
 spring.kafka.bootstrap-servers=<EC2_PUBLIC_IP>:9092
 
-Step 19: AWS Security Group
+Step 9: AWS Security Group check
 
-Make sure your Kafka EC2 security group allows:
+Make sure your EC2 security group allows:
 
-TCP 9092 → from your client IP
+| Type | Port | Source                        |
+| ---- | ---- | ----------------------------- |
+| SSH  | 22   | Your IP                       |
+| TCP  | 9092 | Your IP (Kafka)               |
+| TCP  | 2181 | Your IP (Zookeeper, optional) |
 
-TCP 2181 → from your client IP (if needed externally)
+For testing, you can temporarily use 0.0.0.0/0.
+
+✅ After this, your Kafka server is ready on EC2, and your Spring Boot microservice can connect to it for sending/receiving messages.
 
 
 ✅ Tips / Common Issues
 
 Error	                        Fix
-Connection refused	      Open port 9092 in Security Group
-Timeout	                  Ensure advertised.listeners uses public IP
-No Java                   Install OpenJDK 17
-Disk full	                Increase EC2 storage volume
+Connection refused	          Open port 9092 in Security Group
+Timeout	                      Ensure advertised.listeners uses public IP
+No Java                       Install OpenJDK 17
+Disk full	                    Increase EC2 storage volume
 
