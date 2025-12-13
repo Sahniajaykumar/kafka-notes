@@ -26,6 +26,7 @@ Open Terminal 2:
 
 cd /opt/kafka
 bin/kafka-server-start.sh config/server.properties
+
 ✅ 6. Test Kafka
 ➤ Create a Topic
 cd /opt/kafka
@@ -50,3 +51,178 @@ Make sure your EC2 instance's security group:
 Allows inbound traffic on port 9092 from your client IP or anywhere (0.0.0.0/0 for testing)
 
 Allows inbound traffic on port 2181 if Zookeeper is accessed externally (optional)
+
+
+
+
+==================================================================================================================================================================================
+
+🚀 Kafka Server Setup on AWS EC2 (Step-by-Step)
+
+🔹 STEP 1: Login to AWS
+
+Go to https://aws.amazon.com
+
+Sign in to AWS Console
+
+🔹 STEP 2: Open EC2
+
+Search EC2
+
+Click EC2 → Instances
+
+Click Launch Instance
+
+🔹 STEP 3: Name the Instance
+
+Name: kafka-server (or any name)
+
+🔹 STEP 4: Choose AMI (Operating System)
+
+Select Ubuntu Server 22.04 LTS (Free tier eligible)
+
+🔹 STEP 5: Choose Instance Type
+
+Select t3.medium (4 GB RAM)
+
+Click Next
+
+🔹 STEP 6: Create / Select Key Pair
+
+Click Create new key pair
+
+Name: kafka-key
+
+Type: RSA
+
+Format: .pem
+
+Download and save securely
+
+🔹 STEP 7: Network Settings (Security Group)
+
+Click Edit
+
+Allow inbound rules:
+Type	Port	Source
+SSH	22	My IP
+Custom TCP	9092	My IP
+Custom TCP	2181	My IP
+
+⚠️ For testing only you may use 0.0.0.0/0
+
+🔹 STEP 8: Configure Storage
+
+Root volume: 30 GB
+
+Volume type: gp3
+
+🔹 STEP 9: Launch Instance
+
+Click Launch Instance
+
+Wait until Instance State → Running
+
+🔐 STEP 10: Connect to EC2 From your local terminal:
+
+chmod 400 kafka-key.pem
+ssh -i kafka-key.pem ubuntu@<EC2_PUBLIC_IP>
+
+Step 11: Install Java 17
+sudo apt update
+sudo apt install openjdk-17-jdk -y
+java -version
+
+Should show openjdk version "17...".
+
+Step 12: Download and Extract Kafka
+cd /opt
+sudo wget https://dlcdn.apache.org/kafka/3.9.1/kafka_2.12-3.9.1.tgz
+sudo tar -xvzf kafka_2.12-3.9.1.tgz
+sudo mv kafka_2.12-3.9.1 kafka
+sudo chown -R ubuntu:ubuntu /opt/kafka
+cd kafka
+
+Step 13: Configure Kafka
+
+Edit Kafka broker config:
+
+nano config/server.properties
+
+Update the following:
+
+broker.id=0
+listeners=PLAINTEXT://0.0.0.0:9092
+advertised.listeners=PLAINTEXT://<EC2_PUBLIC_IP>:9092
+log.dirs=/tmp/kafka-logs
+
+Save & exit (CTRL + O → ENTER → CTRL + X)
+
+Step 14: Start Zookeeper
+
+Open Terminal 1 on EC2:
+
+cd /opt/kafka
+bin/zookeeper-server-start.sh config/zookeeper.properties
+
+
+Keep this terminal open.
+
+Step 15: Start Kafka Broker
+
+Open Terminal 2 (new SSH session):
+
+cd /opt/kafka
+bin/kafka-server-start.sh config/server.properties
+
+Step 16: Create Kafka Topic
+
+bin/kafka-topics.sh --create \
+--topic send_email \
+--bootstrap-server localhost:9092 \
+--partitions 1 \
+--replication-factor 1
+
+
+Verify topic:
+
+bin/kafka-topics.sh --list --bootstrap-server localhost:9092
+
+Step 17: Test Kafka
+Producer:
+bin/kafka-console-producer.sh --topic send_email --bootstrap-server localhost:9092
+
+
+Type a test message:
+
+{"to":"test@gmail.com","subject":"Test","body":"Hello Kafka!"}
+
+Consumer:
+bin/kafka-console-consumer.sh --topic send_email --from-beginning --bootstrap-server localhost:9092
+
+
+You should see the message appear.
+
+Step 18: Configure Spring Boot Application
+
+In application.properties of your microservice:
+
+spring.kafka.bootstrap-servers=<EC2_PUBLIC_IP>:9092
+
+Step 19: AWS Security Group
+
+Make sure your Kafka EC2 security group allows:
+
+TCP 9092 → from your client IP
+
+TCP 2181 → from your client IP (if needed externally)
+
+
+✅ Tips / Common Issues
+
+Error	                        Fix
+Connection refused	      Open port 9092 in Security Group
+Timeout	                  Ensure advertised.listeners uses public IP
+No Java                   Install OpenJDK 17
+Disk full	                Increase EC2 storage volume
+
