@@ -1,6 +1,17 @@
 configuring kafka server online in aws on EC2 virtual server
 ======================================================================
 
+when you first time running the command in gitbase then copy this command from aws(ssh client) and past in gith base
+
+Run this command, if necessary, to ensure your key is not publicly viewable.
+chmod 400 "kafka-key.pem"
+
+After Every time you should be login through : below command which you will get in aws(ssh client) : 
+Example:
+ssh -i "kafka-key.pem" ubuntu@ec2-35-154-211-81.ap-south-1.compute.amazonaws.com 
+
+This will help you to connect your local system with EC2 instance virtual server(kafka server) through online
+
 ✅ 1. Install Java (OpenJDK 17) // PSA notes
 
 sudo apt update
