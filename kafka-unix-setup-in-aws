@@ -43,7 +43,7 @@ Open Terminal 2:
 cd /opt/kafka
 bin/kafka-server-start.sh config/server.properties
 
-
+-------------------------------------------------------------------------------------------------------------------------------------------
 ✅ 6. Test Kafka
 Open Terminal 3 : Always first login your local system with EC2 (Ureka ) vertual server using your ssh -i kafka(ssh -i "kafka-key.pem" ubuntu@ec2-35-154-211-81.ap-south-1.compute.amazonaws.com)
 
@@ -52,6 +52,7 @@ Open Terminal 3 : Always first login your local system with EC2 (Ureka ) vertual
 cd /opt/kafka
 bin/kafka-topics.sh --create --topic send-email --bootstrap-server localhost:9092 --partitions 1 --replication-factor 1
 
+------------------------------------------reference below go through my notes-------------------------------------------------------
 
 Update Application.properties file: spring.kafka.bootstrap-servers=ec2-3-109-202-53.ap-south-1.compute.amazonaws.com:9092
 
@@ -62,7 +63,7 @@ sudo vim /opt/kafka/config/server.properties
 then add
 
 listeners=PLAINTEXT://0.0.0.0:9092
-advertised.listeners=PLAINTEXT://ec2-13-232-203-118.ap-south-1.compute.amazonaws.com:9092
+advertised.listeners=PLAINTEXT://ec2-35-154-211-81.ap-south-1.compute.amazonaws.com:9092
 
 
 AWS Security Group
